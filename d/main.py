@@ -2,6 +2,7 @@
 from typing import KeysView
 import pygame
 from pygame import key
+from pygame import rect
 from pygame.constants import BUTTON_WHEELDOWN, MOUSEBUTTONDOWN
 
 # pygame setup
@@ -10,48 +11,66 @@ screen = pygame.display.set_mode((1280, 400))
 clock = pygame.time.Clock()
 running = True
 time_tick = 0
+Arect = 300
 a = pygame.image.load("picture\dino.png")
 b = pygame.image.load("picture\cactus.png")
+c = pygame.image.load("picture\Bird1.png")
 a_rect = a.get_rect()
 a_rect.x = 50
-a_rect.y = 300
+a_rect.y = Arect
 
 b_rect = b.get_rect()
 b = pygame.transform.scale(b,(100,100))
 b_rect.x = 1200
 b_rect.y = 350
+
+c_rect = c.get_rect()
+c_rect.x = 1500
+c_rect.y = 250
 gifspeed = 3 #3
 index = 1
-is_jumping=False
+is_jumping = False
+is_down = False
 index_time = 1
 g=1
-jump=20
+jump=18
 nowjump = jump
 speed = 10
 score = 0
 gameover = False
 font = pygame.font.Font(None,36)
 maxscore = 0
-c = pygame.image
+
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_DOWN:
+                is_down = False
+                Arect=300
+                if not is_jumping:
+                    a_rect.y = Arect
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 is_jumping = True
             if event.key == pygame.K_r and gameover:
-                gameover =False
+                gameover = False
                 score = 0  
                 b_rect.x = 1200
+                c_rect.x = 1500
+            if event.key == pygame.K_DOWN:
+                is_down = True
+                Arect=330
+                a_rect.y = Arect
         if event.type == pygame.MOUSEBUTTONDOWN:
             is_jumping = True
     if is_jumping:
         a_rect.y -= nowjump
         nowjump -= g
-        if a_rect.y > 300:
-            a_rect.y = 300
+        if a_rect.y > Arect:
+            a_rect.y = Arect
             nowjump = jump
             is_jumping = False
     
@@ -69,14 +88,19 @@ while running:
         maxscore_show = font.render(f"max score:{maxscore}",True,(0,0,0))
         gameovertext = font.render(f"game over",True,(0,0,0))
         a = pygame.image.load(f"picture\{index}.gif")
+        c = pygame.image.load(f"picture\Bird{index%2}.png")
         a = pygame.transform.scale(a,(100,100))
+        if is_down:
+            a = pygame.transform.rotate(a, 90)
         b = pygame.transform.scale(b,(50,50))
+        c = pygame.transform.scale(c,(50,50))
         index_time +=1
         if index_time == gifspeed:
             index += 1
             index_time = 0  
         screen.blit(a,a_rect)
         screen.blit(b,b_rect)
+        screen.blit(c,c_rect)
         screen.blit(score_show,(10,10))
         screen.blit(maxscore_show,(10,30))
         
@@ -91,7 +115,16 @@ while running:
             b_rect.x = 1200
             score += 1
 
+        c_rect.x -= speed
+        if c_rect.x < -50:
+            c_rect.x = 1200
+            score += 1
+
         if a_rect.colliderect(b_rect):
+            if maxscore < score:
+                maxscore = score
+            gameover = True
+        if a_rect.colliderect(c_rect):
             if maxscore < score:
                 maxscore = score
             gameover = True
