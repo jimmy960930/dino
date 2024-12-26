@@ -4,6 +4,7 @@ import pygame
 from pygame import key
 from pygame import rect
 from pygame.constants import BUTTON_WHEELDOWN, MOUSEBUTTONDOWN
+import random
 
 # pygame setup
 pygame.init()
@@ -12,9 +13,10 @@ clock = pygame.time.Clock()
 running = True
 time_tick = 0
 Arect = 300
-a = pygame.image.load("picture\dino.png")
-b = pygame.image.load("picture\cactus.png")
-c = pygame.image.load("picture\Bird1.png")
+a = pygame.image.load(r"picture\dino.png")
+b = pygame.image.load(r"picture\cactus.png")
+c = pygame.image.load(r"picture\Bird1.png")
+track = pygame.image.load(r"picture\Track.png")
 a_rect = a.get_rect()
 a_rect.x = 50
 a_rect.y = Arect
@@ -27,6 +29,10 @@ b_rect.y = 350
 c_rect = c.get_rect()
 c_rect.x = 1500
 c_rect.y = 250
+
+track_rect = track.get_rect()
+track_rect.x=0
+track_rect.y=350
 gifspeed = 3 #3
 index = 1
 is_jumping = False
@@ -43,50 +49,47 @@ maxscore = 0
 
 
 while running:
-    for event in pygame.event.get():
+    for event in pygame.event.get():  #按鍵偵測
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_DOWN:
                 is_down = False
-                Arect=300
-                if not is_jumping:
-                    a_rect.y = Arect
+                Arect=a_rect.y-30
+                a_rect.y = Arect
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 is_jumping = True
             if event.key == pygame.K_r and gameover:
                 gameover = False
                 score = 0  
-                b_rect.x = 1200
-                c_rect.x = 1500
+                b_rect.x = 1280
+                c_rect.x = 2000
+                speed = 10
             if event.key == pygame.K_DOWN:
                 is_down = True
-                Arect=330
+                Arect=a_rect.y+30
                 a_rect.y = Arect
         if event.type == pygame.MOUSEBUTTONDOWN:
             is_jumping = True
     if is_jumping:
         a_rect.y -= nowjump
         nowjump -= g
-        if a_rect.y > Arect:
-            a_rect.y = Arect
+        if a_rect.y > (300,330)[is_down]:
+            a_rect.y = (300,330)[is_down]
             nowjump = jump
             is_jumping = False
     
-    if not gameover:
+    if not gameover:  #主程式碼
         
-    
-        # poll for events
-        # pygame.QUIT event means the user clicked X to close your window
-
-        # fill the screen with a color to wipe away anything from last frame
+        
         screen.fill("white")
-
-        # RENDER YOUR GAME HERE
+        screen.blit(track,track_rect)
+        
         score_show = font.render(f"score:{score}",True,(0,0,0))
         maxscore_show = font.render(f"max score:{maxscore}",True,(0,0,0))
         gameovertext = font.render(f"game over",True,(0,0,0))
+        speed_show = font.render(f"speed:{speed}",True,(0,0,0))
         a = pygame.image.load(f"picture\{index}.gif")
         c = pygame.image.load(f"picture\Bird{index%2}.png")
         a = pygame.transform.scale(a,(100,100))
@@ -103,6 +106,7 @@ while running:
         screen.blit(c,c_rect)
         screen.blit(score_show,(10,10))
         screen.blit(maxscore_show,(10,30))
+        screen.blit(speed_show,(1100,10))
         
         
         
@@ -112,14 +116,20 @@ while running:
 
         b_rect.x -= speed
         if b_rect.x < -50:
-            b_rect.x = 1200
+            b_rect.x = random.randint(1280,2000)
             score += 1
-
+            if score % 3 == 0:
+                speed+=1
+        
         c_rect.x -= speed
         if c_rect.x < -50:
-            c_rect.x = 1200
+            c_rect.x = random.randint(1280,2000)
             score += 1
-
+            if score % 3 == 0:
+                speed+=1
+        track_rect.x -= speed
+        if track_rect.x < -200:
+            track_rect.x = 0
         if a_rect.colliderect(b_rect):
             if maxscore < score:
                 maxscore = score
@@ -134,11 +144,9 @@ while running:
             screen.blit(gameovertext,(600,175))            
             
             
-        
-        # flip() the display to put your work on screen
         pygame.display.flip()
 
-        clock.tick(60)  # limits FPS to 60
+        clock.tick(60)  
 
         
         
